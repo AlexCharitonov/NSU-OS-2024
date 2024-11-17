@@ -9,14 +9,15 @@ int main(){
     int fd[2]; pid_t pid;
     char buf[BUFFER];
     int holder;
+    char mes1[10]= "\nholder 0\n", mes2[14]="\nsome problem\n", mes3[18]="\nless than BUFFER\n", mes4[9]="\nfinished";
     while(1){
         holder = read(1,buf,BUFFER);
         if (holder == 0){
-            printf("holder 0");
+            write(1,mes1,10);
             break;
         }
         else if(holder <0){
-            printf("some problem");
+            write(1,mes2,14);
             break;
         }
         else if(holder == BUFFER){
@@ -28,10 +29,10 @@ int main(){
         }
         else{
             write(1,buf,holder);
-            printf("less than BUFFER");
+            write(1,mes3,18);
             break;
         }
     }
-    printf("finished");
+    write(1,mes4,9);
     return 0;
 }
