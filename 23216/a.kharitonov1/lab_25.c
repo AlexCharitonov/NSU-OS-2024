@@ -9,7 +9,7 @@ int main(){
     int fd[2]; pid_t pid;
     char buf[BUFFER];
     int holder;
-    char mes1[10]= "\nholder 0\n", mes2[14]="\nsome problem\n", mes3[18]="\nless than BUFFER\n", mes4[10]="\nfinished\n";
+    char mes1[10]= "\nholder 0\n", mes2[14]="\nsome problem\n", mes3[18]="\nless than BUFFER\n", mes4[9]="\nfinished";
     while(1){
         holder = read(1,buf,BUFFER);
         if (holder == 0){
@@ -33,6 +33,6 @@ int main(){
             break;
         }
     }
-    write(1,mes4,10);
+    write(1,mes4,9);
     return 0;
 }
