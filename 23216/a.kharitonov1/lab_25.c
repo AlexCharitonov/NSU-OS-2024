@@ -1,38 +1,79 @@
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <ctype.h>
-#define   BUFFER   8
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 
-int main(){
-    int fd[2]; pid_t pid;
-    char buf[BUFFER];
-    int holder;
-    char mes1[10]= "\nholder 0\n", mes2[14]="\nsome problem\n", mes3[18]="\nless than BUFFER\n", mes4[9]="\nfinished";
-    while(1){
-        holder = read(1,buf,BUFFER);
-        if (holder == 0){
-            write(1,mes1,10);
-            break;
-        }
-        else if(holder <0){
-            write(1,mes2,14);
-            break;
-        }
-        else if(holder == BUFFER){
-            if (buf[BUFFER-1] == '\n'){
-                write(1,buf,holder);
-                break;
-            }
-            write(1,buf,holder);
-        }
-        else{
-            write(1,buf,holder);
-            write(1,mes3,18);
-            break;
-        }
+int main(int argc, char** argv){
+    if (argc != 2){
+        perror("you have to give file name");
+        exit(EXIT_FAILURE);
     }
-    write(1,mes4,9);
-    return 0;
+    struct flock lock;
+    int file = open(argv[1], O_RDWR);
+    if (file == -1){
+        perror("problem in file open");
+        exit(EXIT_FAILURE);
+    }
+    lock.l_type = F_RDLCK;
+    lock.l_whence = SEEK_SET;
+    lock.l_start = 0;
+    lock.l_len = 0;
+    if (fcntl(file, F_SETLK, &lock) == -1){
+        perror("problem in lock");
+        close(file);
+        exit(EXIT_FAILURE);
+    }
+    char* cmd = malloc(strlen("nano ") + strlen(argv[1]) + 1);
+    if (!cmd){
+        perror("problem in malloc");
+        lock.l_type = F_UNLCK;
+        if (fcntl(file, F_SETLK, &lock) == -1){
+            perror("problem in unlock");
+            close(file);
+            exit(EXIT_FAILURE);
+        }
+        close(file);
+        exit(EXIT_FAILURE);
+    }
+    if (snprintf(cmd, strlen("nano ") + strlen(argv[1]) + 1, "nano %s", argv[1]) < 0){
+        perror("problem in snprintf");
+        free(cmd);
+        lock.l_type = F_UNLCK;
+        if (fcntl(file, F_SETLK, &lock) == -1){
+            perror("problem in unlock");
+            close(file);
+            exit(EXIT_FAILURE);
+        }
+        close(file);
+        exit(EXIT_FAILURE);
+    }
+    if (system(cmd) == -1){
+        perror("failed in nano");
+        free(cmd);
+        lock.l_type = F_UNLCK;
+        if (fcntl(file, F_SETLK, &lock) == -1){
+            perror("problem in unlock");
+            close(file);
+            exit(EXIT_FAILURE);
+        }
+        close(file);
+        exit(EXIT_FAILURE);
+    }
+    lock.l_type = F_UNLCK;
+    if (fcntl(file, F_SETLK, &lock) == -1){
+        perror("problem in unlock");
+        free(cmd);
+        lock.l_type = F_UNLCK;
+        if (fcntl(file, F_SETLK, &lock) == -1){
+            perror("problem in unlock");
+            close(file);
+            exit(EXIT_FAILURE);
+        }
+        close(file);
+        exit(EXIT_FAILURE);
+    }
+    free(cmd);
+    close(file);
+    exit(EXIT_SUCCESS);
 }
