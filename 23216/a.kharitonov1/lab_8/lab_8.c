@@ -26,7 +26,7 @@ int main(int argc, char** argv){
     }
     char* cmd = malloc(strlen("nano ") + strlen(argv[1]) + 1);
     if (!cmd){
-        write(2,"problem in malloc", strlen("problem in malloc"));
+       perror("problem in malloc");
         lock.l_type = F_UNLCK;
         if (fcntl(file, F_SETLK, &lock) == -1){
             perror("problem in unlock");
