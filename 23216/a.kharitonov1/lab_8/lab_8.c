@@ -6,7 +6,7 @@
 
 int main(int argc, char** argv){
     if (argc != 2){
-        write(2,"you have to give file name", strlen("you have to give file name"));
+        write(2,"you have to give file name\n", strlen("you have to give file name\n"));
         exit(EXIT_FAILURE);
     }
     struct flock lock;
@@ -37,7 +37,7 @@ int main(int argc, char** argv){
         exit(EXIT_FAILURE);
     }
     if (snprintf(cmd, strlen("nano ") + strlen(argv[1]) + 1, "nano %s", argv[1]) < 0){
-        write(2,"problem in snprintf", strlen("problem in snprintf"));
+        write(2,"problem in snprintf\n", strlen("problem in snprintf\n"));
         free(cmd);
         lock.l_type = F_UNLCK;
         if (fcntl(file, F_SETLK, &lock) == -1){
